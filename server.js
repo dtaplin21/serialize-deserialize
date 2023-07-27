@@ -1,4 +1,5 @@
 const http = require('http');
+const { json } = require('stream/consumers');
 
 const server = http.createServer((req, res) => {
   console.log(`${req.method} ${req.url}`);
@@ -9,6 +10,14 @@ const server = http.createServer((req, res) => {
   });
 
   req.on("end", () => {
+  const contentType = req.headers["content-type"];
+
+  if(req.body && contentType === "application/json") {
+    console.log(reqBody);
+
+    reqBody = JSON.parse(reqBody)
+  }
+
     // Parse the body of the request as JSON if Content-Type header is
       // application/json
     // Parse the body of the request as x-www-form-urlencoded if Content-Type
@@ -33,9 +42,27 @@ const server = http.createServer((req, res) => {
     };
 
     // Return the `resBody` object as JSON in the body of the response
+    const resJson = JSON.stringify(resBody);
+
+    res.statusCOde = 200;
+    res.setHeader("Content-Type", "application/json");
+
+    return res.end(resJson)
   });
 });
 
 const port = 5000;
 
+
 server.listen(port, () => console.log('Server is listening on port', port));
+
+fetch("/", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+
+  body: JSON.stringify({
+    hey: "dood"
+  })
+}).then((res) => res.json()).then((data) => console.log(res.body))
